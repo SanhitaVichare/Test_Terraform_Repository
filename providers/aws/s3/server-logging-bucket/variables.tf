@@ -1,5 +1,8 @@
-# This file contains variable definitions to create a server logging S3 bucket with all CIS Benchmark and CSA recommendations
+#This file contains variables which are applicable on global level such as Tags/Custom VPC to create EC2 instances etc.
 
+########################
+#Global Input Arguments
+#######################
 variable "mandatory_tag_owner" {
   type 		  = string
   description = "This variable must contain owner name/arn"
