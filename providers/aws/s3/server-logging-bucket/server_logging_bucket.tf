@@ -27,11 +27,11 @@ resource "aws_s3_bucket" "server_logging_bucket" {
     }
   }
 
- 
   tags = {
-    OWNER       = var.mandatory_tag_owner
-    DESCRIPTION = var.mandatory_tag_description
-	CODE        = var.mandatory_tag_code
+    OWNER       = "arn:aws:sts::412164052405:assumed-role/LabAWSAdmin/sadhuprakash@testing-labs.net"
+    DESCRIPTION = "Demo Resource to Delete"
+	CODE        = "NA"
+
   }
 }
 
