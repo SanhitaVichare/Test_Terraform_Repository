@@ -1,21 +1,17 @@
-# This file contains resource to create a server logging S3 bucket with all CIS Benchmark and CSA recommendations
+# This file contains resource to create a secure S3 bucket with all CIS Benchmark and CSA recommendations
 
-#This resource is used to create S3 server logging bucket
-resource "aws_s3_bucket" "server_logging_bucket" {
-  bucket = "terraform-server-logging-bucket"
-  acl    = "log-delivery-write"
+#This resource is used to create secure S3 bucket
+resource "aws_s3_bucket" "secure_s3_bucket" {
+  bucket = "terraform-secure-bucket"
+  acl    = "private"
+  
   versioning {
     enabled = true
   }
 
-   object_lock_configuration {
-    object_lock_enabled = "Enabled"
-    rule {
-      default_retention {
-	    mode = "GOVERNANCE"
-		days = "365"
-	  }
-	}	
+  logging {
+    target_bucket = var.server_logging_bucket_name
+	target_prefix = "SecureS3Bucket/"
   }
 
   server_side_encryption_configuration {
@@ -26,18 +22,28 @@ resource "aws_s3_bucket" "server_logging_bucket" {
       }
     }
   }
+  
+
+  object_lock_configuration {
+    object_lock_enabled = "Enabled"
+    rule {
+      default_retention {
+	    mode = "GOVERNANCE"
+		days = "365"
+	  }
+	}	
+  }
 
   tags = {
     OWNER       = "arn:aws:sts::412164052405:assumed-role/LabAWSAdmin/sadhuprakash@testing-labs.net"
     DESCRIPTION = "Demo Resource to Delete"
     CODE        = "NA"
-
   }
 }
 
 #This resource is used to setup S3 server logging bucket public access block configuration
-resource "aws_s3_bucket_public_access_block" "server_logging_bucket" {
-  bucket 				  = aws_s3_bucket.server_logging_bucket.id
+resource "aws_s3_bucket_public_access_block" "secure_s3_bucket" {
+  bucket 		  = aws_s3_bucket.secure_s3_bucket.id
 
   block_public_acls   	  = true
   block_public_policy 	  = true
@@ -45,14 +51,14 @@ resource "aws_s3_bucket_public_access_block" "server_logging_bucket" {
   restrict_public_buckets = true
 
   depends_on = [
-    aws_s3_bucket_policy.server_logging_bucket
+    aws_s3_bucket_policy.secure_s3_bucket
   ]
 }
 
-resource "aws_s3_bucket_policy" "server_logging_bucket" {
-  bucket = aws_s3_bucket.server_logging_bucket.id
-
-  #policy = file("./providers/aws/s3/server-logging-bucket/server_logging_bucket_policy.json")
+resource "aws_s3_bucket_policy" "secure_s3_bucket" {
+  bucket = aws_s3_bucket.secure_s3_bucket.id
+  
+  #policy = file("./providers/aws/s3/secure-s3-bucket/secure_s3_bucket_policy.json")
   policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -68,7 +74,7 @@ resource "aws_s3_bucket_policy" "server_logging_bucket" {
          ]
       },
       "Action": "s3:GetBucketAcl",
-      "Resource": "${aws_s3_bucket.server_logging_bucket.arn}"
+      "Resource": "${aws_s3_bucket.secure_s3_bucket.arn}"
     },
 	{
       "Sid": "Statement2",
@@ -80,7 +86,7 @@ resource "aws_s3_bucket_policy" "server_logging_bucket" {
          ]
       },
       "Action": "s3:PutObject",
-      "Resource": "${aws_s3_bucket.server_logging_bucket.arn}/*",
+      "Resource": "${aws_s3_bucket.secure_s3_bucket.arn}/*",
 	  "Condition":{
          "StringEquals":{
             "s3:x-amz-acl":"bucket-owner-full-control"
@@ -92,13 +98,12 @@ resource "aws_s3_bucket_policy" "server_logging_bucket" {
 POLICY
 }
 
-
-output "server_logging_bucket_name" {
-  value  = aws_s3_bucket.server_logging_bucket.id
+output "secure_s3_bucket_name" {
+  value  = aws_s3_bucket.secure_s3_bucket.id
   description  = "This output variable holds the S3 server logging bucket name which can be referrenced in other resources"
 }
 
-output "server_logging_bucket_arn" {
-  value  = aws_s3_bucket.server_logging_bucket.arn
+output "secure_s3_bucket_arn" {
+  value  = aws_s3_bucket.secure_s3_bucket.arn
   description  = "This output variable holds the S3 server logging bucket arn which can be referrenced in other resources"
 }
